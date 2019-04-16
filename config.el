@@ -111,20 +111,74 @@
 ;; lang/org
 (after! org
   (add-to-list 'org-modules 'org-habit t)
-  (setq org-todo-keywords
+  (setq org-directory "~/org/"
+        org-agenda-files (list org-directory)
+        org-todo-keywords
         '((sequence "TODO(t)" "STARTED(s)" "|" "DONE(d)")
-          (sequence "NEXT(n)" "WAITING(w)" "LATER(l)" "|" "CANCELLED(c)")
-          (sequence "[ ](T)" "[-](p)" "[?](m)" "|" "[X](D)"))
+          (sequence "NEXT(n)" "WAITING(w)" "LATER(l)" "|" "CANCELLED(c)"))
         org-todo-keyword-faces
-        '(("[-]" :inherit (font-lock-constant-face bold))
-          ("[?]" :inherit (warning bold))
-          ("WAITING" :inherit bold)
+        '(("WAITING" :inherit bold)
           ("LATER" :inherit (warning bold)))))
 (setq org-ellipsis " ▶ "
       ;; The standard unicode characters are usually misaligned depending on the
       ;; font. This bugs me. Markdown #-marks for headlines are more elegant.
       org-bullets-bullet-list '("#")
       org-log-done 'time)
+(add-hook 'org-agenda-mode-hook
+  (lambda ()
+    (general-define-key
+      :keymaps 'local
+      :states 'motion
+      ;; evil-org-agenda has the wrong keybinding for "M"
+      "M" 'org-agenda-bulk-unmark-all)))
+
+
+;;
+;;; Packages
+
+;; org-brain
+(def-package! org-brain
+  :init
+  (setq org-brain-path "~/org/brain")
+  ;; For Evil users
+  (with-eval-after-load 'evil
+    (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+  :config
+  (setq org-id-track-globally t)
+  (setq org-id-locations-file "~/org/.org-id-locations")
+  (push '("b" "Brain" plain (function org-brain-goto-end)
+          "* %i%?" :empty-lines 1)
+        org-capture-templates)
+  (setq org-brain-visualize-default-choices 'all)
+  (setq org-brain-title-max-length 12))
+
+;; org-super-agenda
+(def-package! org-super-agenda
+ :config
+ (org-super-agenda-mode))
+(setq org-super-agenda-header-map (make-sparse-keymap))
+(setq org-agenda-custom-commands
+      '(("c" "Super Agenda" agenda
+         (org-super-agenda-mode)
+         ((org-super-agenda-groups
+           '(
+             (:name "Next Items"
+                    :time-grid t
+                    :tag ("NEXT" "outbox"))
+             (:name "Important"
+                    :priority "A")
+             (:name "Today"
+                    :time-grid t
+                    :scheduled today)
+             (:priority<= "B"
+                    :order 1)
+             )))
+         (org-agenda nil "a"))))
+
+;; org-sticky-header
+(def-package! org-sticky-header)
+(add-hook! 'org-mode-hook
+  (org-sticky-header-mode))
 
 
 ;;

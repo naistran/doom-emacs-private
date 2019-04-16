@@ -6,3 +6,7 @@
 
 ;; ;; I never use it.
 ;; (package! which-key :disable t)
+
+(package! org-brain)
+(package! org-super-agenda)
+(package! org-sticky-header)
