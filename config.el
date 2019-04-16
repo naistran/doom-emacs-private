@@ -7,13 +7,15 @@
 
 (add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
 
-;; (setq user-full-name "Henrik Lissner"
+(setq
+;;       user-full-name "Henrik Lissner"
 ;;       user-mail-address "henrik@lissner.net"
 
-;;       doom-font (font-spec :family "Input Mono Narrow" :size 12)
-;;       doom-variable-pitch-font (font-spec :family "Noto Sans" :size 14)
-;;       doom-big-font (font-spec :family "Fira Mono" :size 19))
-
+      ;; Also install this for ligature support:
+      ;; https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip
+      doom-font (font-spec :family "Fira Code" :size 12)
+      doom-variable-pitch-font (font-spec :family "Fira Code" :size 14)
+      doom-big-font (font-spec :family "Fira Code" :size 19))
 
 ;;
 ;;; Host-specific config
@@ -82,6 +84,11 @@
         "m" #'+hlissner/find-notes-for-major-mode
         "p" #'+hlissner/find-notes-for-project))
 
+(add-hook 'org-agenda-mode-hook
+  (lambda () (general-define-key :keymaps 'local :states 'motion
+      ;; evil-org-agenda has the wrong keybinding for "M"
+      "M" 'org-agenda-bulk-unmark-all)))
+
 
 ;;
 ;;; Modules
@@ -120,18 +127,8 @@
         '(("WAITING" :inherit bold)
           ("LATER" :inherit (warning bold)))))
 (setq org-ellipsis " ▶ "
-      ;; The standard unicode characters are usually misaligned depending on the
-      ;; font. This bugs me. Markdown #-marks for headlines are more elegant.
       org-bullets-bullet-list '("#")
       org-log-done 'time)
-(add-hook 'org-agenda-mode-hook
-  (lambda ()
-    (general-define-key
-      :keymaps 'local
-      :states 'motion
-      ;; evil-org-agenda has the wrong keybinding for "M"
-      "M" 'org-agenda-bulk-unmark-all)))
-
 
 ;;
 ;;; Packages
@@ -139,7 +136,7 @@
 ;; org-brain
 (def-package! org-brain
   :init
-  (setq org-brain-path "~/org/brain")
+  (setq org-brain-path (expand-file-name "brain" org-directory))
   ;; For Evil users
   (with-eval-after-load 'evil
     (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
@@ -176,10 +173,15 @@
          (org-agenda nil "a"))))
 
 ;; org-sticky-header
-(def-package! org-sticky-header)
+(def-package! org-sticky-header
+  :config
+  (setq org-sticky-header-full-path 'full))
 (add-hook! 'org-mode-hook
   (org-sticky-header-mode))
 
+(def-package! deft
+  :config
+  (shell-command (concat "ln -sfn " org-brain-path " ~/.deft")))
 
 ;;
 ;;; Custom
