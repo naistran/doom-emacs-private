@@ -8,25 +8,14 @@
 (add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
 
 (setq
-;;       user-full-name "Henrik Lissner"
-;;       user-mail-address "henrik@lissner.net"
+ ;;       user-full-name "Henrik Lissner"
+ ;;       user-mail-address "henrik@lissner.net"
 
-      ;; Also install this for ligature support:
-      ;; https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip
-      doom-font (font-spec :family "Fira Code" :size 12)
-      doom-variable-pitch-font (font-spec :family "Fira Code" :size 14)
-      doom-big-font (font-spec :family "Fira Code" :size 19))
-
-;;
-;;; Host-specific config
-
-(pcase (system-name)
-  ("halimede"
-   (font-put doom-font :size 9)) ; smaller display
-  ("triton"
-   ;; I've swapped these keys on my keyboard
-   (setq x-super-keysym 'meta
-         x-meta-keysym  'super)))
+ ;; Also install this for ligature support:
+ ;; https://github.com/tonsky/FiraCode/files/412440/FiraCode-Regular-Symbol.zip
+ doom-font (font-spec :family "Fira Code" :size 12)
+ doom-variable-pitch-font (font-spec :family "Fira Code" :size 14)
+ doom-big-font (font-spec :family "Fira Code" :size 19))
 
 (when IS-LINUX
   (font-put doom-font :weight 'semi-light))
@@ -84,36 +73,24 @@
         "m" #'+hlissner/find-notes-for-major-mode
         "p" #'+hlissner/find-notes-for-project))
 
+;; Improve tag autocompletion
+(map! (:after counsel
+        [remap org-set-tags-command] #'counsel-org-tag))
+
+;; evil-org-agenda has the wrong keybinding for "M"
 (add-hook 'org-agenda-mode-hook
-  (lambda () (general-define-key :keymaps 'local :states 'motion
-      ;; evil-org-agenda has the wrong keybinding for "M"
-      "M" 'org-agenda-bulk-unmark-all)))
+          (lambda ()
+          (general-define-key
+            :keymaps 'local
+            :states 'motion
+            "M" 'org-agenda-bulk-unmark-all)))
 
 
 ;;
 ;;; Modules
 
-(setq +pretty-code-enabled-modes '(emacs-lisp-mode org-mode))
-
 ;; app/rss
 (add-hook! 'elfeed-show-mode-hook (text-scale-set 2))
-
-;; ;; emacs/eshell
-;; (after! eshell
-;;   (set-eshell-alias!
-;;    "f"   "(other-window 1) && find-file $1"
-;;    "l"   "ls -lh"
-;;    "d"   "dired $1"
-;;    "gl"  "(call-interactively 'magit-log-current)"
-;;    "gs"  "magit-status"
-;;    "gc"  "magit-commit"))
-
-;; ;; tools/magit
-;; (setq magit-repository-directories '(("~/work" . 2))
-;;       magit-save-repository-buffers nil
-;;       transient-values '((magit-commit "--gpg-sign=5F6C0EA160557395")
-;;                          (magit-rebase "--autosquash" "--gpg-sign=5F6C0EA160557395")
-;;                          (magit-pull "--rebase" "--gpg-sign=5F6C0EA160557395")))
 
 ;; lang/org
 (after! org
@@ -121,14 +98,58 @@
   (setq org-directory "~/org/"
         org-agenda-files (list org-directory)
         org-todo-keywords
-        '((sequence "TODO(t)" "STARTED(s)" "|" "DONE(d)")
-          (sequence "NEXT(n)" "WAITING(w)" "LATER(l)" "|" "CANCELLED(c)"))
+        '((sequence "TODO(t!)" "STARTED(s!)" "|" "DONE(d!)")
+          (sequence "NEXT(n!)" "WAITING(w!)" "LATER(l!)" "|" "CANCELLED(c!)"))
         org-todo-keyword-faces
         '(("WAITING" :inherit bold)
           ("LATER" :inherit (warning bold)))))
 (setq org-ellipsis " ▶ "
       org-bullets-bullet-list '("#")
-      org-log-done 'time)
+      ;; org-log-done 'time
+      ;; org-fast-tag-selection-single-key t
+      org-use-speed-commands t
+      org-tag-persistent-alist
+      '((:startgroup)
+        ("HOME")
+        ("RESEARCH")
+        ("TEACHING")
+        (:endgroup)
+        (:startgroup)
+        ("OS")
+        ("DEV")
+        ("WWW")
+        (:endgroup)
+        (:startgroup)
+        ("EASY")
+        ("MEDIUM")
+        ("HARD")
+        (:endgroup)
+        ("URGENT")
+        ("KEY")
+        ("BONUS")
+        ("noexport"))
+      org-tag-faces
+      '(("HOME" . (:foreground "GoldenRod" :weight bold))
+        ("RESEARCH" . (:foreground "GoldenRod" :weight bold))
+        ("TEACHING" . (:foreground "GoldenRod" :weight bold))
+        ("OS" . (:foreground "IndianRed1" :weight bold))
+        ("DEV" . (:foreground "IndianRed1" :weight bold))
+        ("WWW" . (:foreground "IndianRed1" :weight bold))
+        ("URGENT" . (:foreground "Red" :weight bold))
+        ("KEY" . (:foreground "Red" :weight bold))
+        ("EASY" . (:foreground "OrangeRed" :weight bold))
+        ("MEDIUM" . (:foreground "OrangeRed" :weight bold))
+        ("HARD" . (:foreground "OrangeRed" :weight bold))
+        ("BONUS" . (:foreground "GoldenRod" :weight bold))
+        ("noexport" . (:foreground "LimeGreen" :weight bold))))
+
+;; company
+;; Make autocomplete work with org (C-x C-o)
+(defun add-pcomplete-to-capf ()
+  (add-hook 'completion-at-point-functions 'pcomplete-completions-at-point nil t))
+(add-hook 'org-mode-hook #'add-pcomplete-to-capf)
+(global-company-mode)
+
 
 ;;
 ;;; Packages
@@ -142,7 +163,7 @@
     (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
   :config
   (setq org-id-track-globally t)
-  (setq org-id-locations-file "~/org/.org-id-locations")
+  (setq org-id-locations-file (expand-file-name ".org-id-locations" org-directory))
   (push '("b" "Brain" plain (function org-brain-goto-end)
           "* %i%?" :empty-lines 1)
         org-capture-templates)
@@ -151,8 +172,8 @@
 
 ;; org-super-agenda
 (def-package! org-super-agenda
- :config
- (org-super-agenda-mode))
+  :config
+  (org-super-agenda-mode))
 (setq org-super-agenda-header-map (make-sparse-keymap))
 (setq org-agenda-custom-commands
       '(("c" "Super Agenda" agenda
@@ -168,7 +189,7 @@
                     :time-grid t
                     :scheduled today)
              (:priority<= "B"
-                    :order 1)
+                          :order 1)
              )))
          (org-agenda nil "a"))))
 
@@ -179,9 +200,13 @@
 (add-hook! 'org-mode-hook
   (org-sticky-header-mode))
 
+;; deft
 (def-package! deft
   :config
-  (shell-command (concat "ln -sfn " org-brain-path " ~/.deft")))
+  (setq deft-directory org-brain-path))
+  (setq deft-recursive t)
+  ;; (shell-command (concat "ln -sfn " org-brain-path " ~/.deft")))
+
 
 ;;
 ;;; Custom

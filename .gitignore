@@ -1,3 +1,4 @@
 eshell/history
 eshell/lastdir
 *.elc
+.DS_Store
