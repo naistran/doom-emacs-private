@@ -65,16 +65,23 @@
         :gi [s-S-return]  #'+default/newline-above
         :gi [s-backspace] #'doom/backward-kill-to-bol-and-indent)
 
-      :leader
-      (:prefix "f"
-        "t" #'+hlissner/find-in-dotfiles
-        "T" #'+hlissner/browse-dotfiles)
-      (:prefix "n"
-        "m" #'+hlissner/find-notes-for-major-mode
-        "p" #'+hlissner/find-notes-for-project))
+      (:leader
+        (:prefix "f"
+          "t" #'+hlissner/find-in-dotfiles
+          "T" #'+hlissner/browse-dotfiles)
+        (:prefix "n"
+          "m" #'+hlissner/find-notes-for-major-mode
+          "p" #'+hlissner/find-notes-for-project)
 
-;; Improve tag autocompletion
-(map! (:after counsel
+      ;; Quicker access to agenda
+        "a" #'org-agenda)
+
+      ;; Zen mode
+      (:map evil-window-map
+        "z" #'writeroom-mode)
+
+      ;; Improve tag autocompletion
+      (:after counsel
         [remap org-set-tags-command] #'counsel-org-tag))
 
 ;; evil-org-agenda has the wrong keybinding for "M"
@@ -205,7 +212,6 @@
   :config
   (setq deft-directory org-brain-path))
   (setq deft-recursive t)
-  ;; (shell-command (concat "ln -sfn " org-brain-path " ~/.deft")))
 
 
 ;;

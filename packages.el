@@ -10,3 +10,4 @@
 (package! org-brain)
 (package! org-super-agenda)
 (package! org-sticky-header)
+(package! writeroom-mode)
