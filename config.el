@@ -157,6 +157,13 @@
 (add-hook 'org-mode-hook #'add-pcomplete-to-capf)
 (global-company-mode)
 
+;; visual-line-mode
+;; Make text wrap
+;; enable visual-line first
+(global-visual-line-mode)
+;; disable auto-fill because it automatically splits the line where we don't want
+(add-hook 'org-mode-hook #'(auto-fill-mode -1))
+
 
 ;;
 ;;; Packages
