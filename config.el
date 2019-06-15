@@ -162,7 +162,7 @@
 ;; enable visual-line first
 (global-visual-line-mode)
 ;; disable auto-fill because it automatically splits the line where we don't want
-(add-hook 'org-mode-hook #'(auto-fill-mode -1))
+(remove-hook 'org-mode-hook #'auto-fill-mode)
 
 
 ;;
